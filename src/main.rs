@@ -1,8 +1,10 @@
 use ethrpc::{eth, types::*};
-use futures::future::{join_all, try_join};
-use futures::try_join;
+use futures::future::join_all;
 use std::error::Error;
+use tracing::Level;
+use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
 
+/// Coppied from: https://github.com/nlordell/ethrpc-rs/blob/main/examples/http/src/main.rs
 async fn repo_example() -> Result<(), Box<dyn Error>> {
     let client = ethrpc::http::Client::from_env().buffered(Default::default());
     let (block_number, block) = tokio::try_join!(
@@ -17,21 +19,30 @@ async fn repo_example() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-async fn next_level_example() -> Result<(), Box<dyn Error>> {
+async fn next_level_example(num_requests: u64) -> Result<(), Box<dyn Error>> {
+    let n = num_requests;
+    tracing::info!("Preparing {} GetBlock Requests", n);
     let client = ethrpc::http::Client::from_env().buffered(Default::default());
     let mut futures = vec![];
-    for i in 1..200 {
+    for i in 1..num_requests + 1 {
         futures.push(client.call(eth::GetBlockByNumber, (i.into(), Hydrated::No)));
     }
-
-    // let x = tokio::join_all!(futures)?;
-    // let x = try_join!(futures.iter())?;
-    // println!("{x}", x);
+    tracing::info!("Loaded {} GetBlock Requests", n);
+    let x = join_all(futures).await.into_iter().map(|r| r.ok());
+    tracing::info!("Resolved {} GetBlock Requests", x.len());
     Ok(())
 }
 
+// async fn contract_calls() -> Result<(), Box<dyn Error>> {}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let _ = repo_example().await;
+    let filter = EnvFilter::from_default_env().add_directive(Level::INFO.into());
+    let subscriber = FmtSubscriber::builder().with_env_filter(filter).finish();
+
+    tracing::subscriber::set_global_default(subscriber)?;
+
+    // let _ = repo_example().await;
+    let _ = next_level_example(2000).await;
     Ok(())
 }
