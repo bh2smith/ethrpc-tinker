@@ -8,13 +8,9 @@ const SYMBOL: FunctionEncoder<(), (String,)> = FunctionEncoder::new(selector!("s
 const TOKEN_URI: FunctionEncoder<(U256,), (String,)> =
     FunctionEncoder::new(selector!("tokenURI(uint256 tokenId)"));
 
-/// First (weak attempt)
 fn name_call(address: Address) -> TransactionCall {
-    // Should be able to use solabi to construct `get_name_call` from function signature:
-    // function name() public view virtual override returns (string memory)
     TransactionCall {
         to: Some(address),
-        // This is only the selector (since name() has no parameters)
         input: Some(NAME.encode_params(&())),
         ..Default::default()
     }
@@ -95,12 +91,12 @@ pub struct NftId {
 pub async fn get_uris(token_ids: Vec<NftId>) -> HashMap<NftId, Option<String>> {
     let client = ethrpc::http::Client::from_env().buffered(Default::default());
     tracing::info!("Preparing {} tokenUri Requests", token_ids.len());
-    let name_futures = token_ids
+    let futures = token_ids
         .iter()
         .cloned()
         .map(|token| client.call(eth::Call, (uri_call(token), BlockId::default())));
 
-    let uris = join_all(name_futures).await;
+    let uris = join_all(futures).await;
 
     token_ids
         .into_iter()
