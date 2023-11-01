@@ -14,19 +14,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
     tracing::subscriber::set_global_default(subscriber)?;
 
     let _ = examples::_01_repo_example::run_example().await;
-    let _ = examples::_02_next_level::run_example(500).await;
-    let _ = examples::_03_solabi::get_name_and_symbol(
-        util::addresses_from_file("./addresses.txt").unwrap(),
+    let _ = examples::_02_next_level::run_example(50).await;
+    let contract_details = examples::_03_solabi::get_name_and_symbol(
+        util::addresses_from_file("./addresses.txt").unwrap()[..20].to_vec(),
     )
     .await;
-    let _ = examples::_03_solabi::get_uris(
+    // TokenURI does not work (only returns None)
+    println!("Contract Details {:?}", contract_details);
+    let uris = examples::_03_solabi::get_uris(
+        // [484u32, 485, 486, 487, 488, 489, 490, 491, 492]
+        //     .into_iter()
         (1u32..100)
             .map(|i| NftId {
-                address: Address::from_str("0xD06966A7860131A8F858573BD76D08C27E7286BA").unwrap(),
+                address: Address::from_str("0x7756F945A7C80EC83EB34E93A6384898FD65F18D").unwrap(),
                 id: i.into(),
             })
             .collect(),
     )
     .await;
+    println!("Uris {:?}", uris);
     Ok(())
 }

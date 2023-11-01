@@ -6,7 +6,7 @@ use std::collections::HashMap;
 const NAME: FunctionEncoder<(), (String,)> = FunctionEncoder::new(selector!("name()"));
 const SYMBOL: FunctionEncoder<(), (String,)> = FunctionEncoder::new(selector!("symbol()"));
 const TOKEN_URI: FunctionEncoder<(U256,), (String,)> =
-    FunctionEncoder::new(selector!("tokenURI(uint256 tokenId)"));
+    FunctionEncoder::new(selector!("tokenURI(uint256)"));
 
 fn name_call(address: Address) -> TransactionCall {
     TransactionCall {
@@ -82,7 +82,7 @@ pub async fn get_name_and_symbol(
         .collect()
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct NftId {
     pub address: Address,
     pub id: U256,
