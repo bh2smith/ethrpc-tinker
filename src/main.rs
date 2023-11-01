@@ -1,4 +1,5 @@
 mod examples;
+mod util;
 use std::error::Error;
 use tracing::Level;
 use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
@@ -12,5 +13,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let _ = examples::_01_repo_example::run_example().await;
     let _ = examples::_02_next_level::run_example(500).await;
+    let _ = examples::_03_solabi::get_names(util::addresses_from_file("./addresses.txt").unwrap())
+        .await;
     Ok(())
 }
