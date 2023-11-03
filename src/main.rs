@@ -15,13 +15,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let _ = examples::_01_repo_example::run_example().await;
     let _ = examples::_02_next_level::run_example(50).await;
-    let contract_details = examples::_03_solabi::get_name_and_symbol(
-        util::addresses_from_file("./addresses.txt").unwrap()[..20].to_vec(),
+    let _ = examples::_03_solabi::get_name_and_symbol(
+        util::addresses_from_file("./addresses.txt")
+            .unwrap()
+            .to_vec(),
     )
     .await;
-    // TokenURI does not work (only returns None)
-    println!("Contract Details {:?}", contract_details);
-    let uris = examples::_03_solabi::get_uris(
+    // println!("Contract Details {:?}", contract_details);
+    let _ = examples::_03_solabi::get_uris(
         // [484u32, 485, 486, 487, 488, 489, 490, 491, 492]
         //     .into_iter()
         (1u32..100)
@@ -32,6 +33,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .collect(),
     )
     .await;
-    println!("Uris {:?}", uris);
+    // println!("Uris {:?}", uris);
     Ok(())
 }

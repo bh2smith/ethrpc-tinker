@@ -1,5 +1,5 @@
 use ethrpc::{eth, types::*};
-use futures::future::join_all;
+use futures::future::{join, join_all};
 use solabi::{decode::Decode, encode::Encode, selector, Address, FunctionEncoder};
 use std::collections::HashMap;
 
@@ -42,8 +42,8 @@ where
 {
     match res {
         Ok(bytes) => Some(encoder.decode_returns(bytes).expect("always blue").0),
-        Err(err) => {
-            tracing::warn!("got {:?}", err.to_string());
+        Err(_) => {
+            // tracing::warn!("got {:?}", err.to_string());
             None
         }
     }
@@ -53,7 +53,7 @@ pub async fn get_name_and_symbol(
     addresses: Vec<Address>,
 ) -> HashMap<Address, (Option<String>, Option<String>)> {
     let client = ethrpc::http::Client::from_env().buffered(Default::default());
-    tracing::info!("Preparing {} GetName Requests", addresses.len());
+    tracing::debug!("Preparing {} Contract Details Requests", addresses.len());
     let name_futures = addresses
         .iter()
         .cloned()
@@ -64,9 +64,8 @@ pub async fn get_name_and_symbol(
         .cloned()
         .map(|addr| client.call(eth::Call, (symbol_call(addr), BlockId::default())));
 
-    let names = join_all(name_futures).await;
-    let symbols = join_all(symbol_futures).await;
-
+    let (names, symbols) = join(join_all(name_futures), join_all(symbol_futures)).await;
+    tracing::debug!("Complete {} Contract Details Requests", addresses.len());
     addresses
         .into_iter()
         .zip(names.iter().zip(symbols))
@@ -90,14 +89,14 @@ pub struct NftId {
 
 pub async fn get_uris(token_ids: Vec<NftId>) -> HashMap<NftId, Option<String>> {
     let client = ethrpc::http::Client::from_env().buffered(Default::default());
-    tracing::info!("Preparing {} tokenUri Requests", token_ids.len());
+    tracing::debug!("Preparing {} tokenUri Requests", token_ids.len());
     let futures = token_ids
         .iter()
         .cloned()
         .map(|token| client.call(eth::Call, (uri_call(token), BlockId::default())));
 
     let uris = join_all(futures).await;
-
+    tracing::debug!("Complete {} tokenUri Requests", token_ids.len());
     token_ids
         .into_iter()
         .zip(uris)
