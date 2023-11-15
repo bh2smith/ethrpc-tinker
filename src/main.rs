@@ -6,13 +6,7 @@ use std::{error::Error, str::FromStr};
 use tracing::Level;
 use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    let filter = EnvFilter::from_default_env().add_directive(Level::INFO.into());
-    let subscriber = FmtSubscriber::builder().with_env_filter(filter).finish();
-
-    tracing::subscriber::set_global_default(subscriber)?;
-
+async fn run_old() {
     let _ = examples::_01_repo_example::run_example().await;
     let _ = examples::_02_next_level::run_example(50).await;
     let _ = examples::_03_solabi::get_name_and_symbol(
@@ -33,6 +27,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .collect(),
     )
     .await;
-    // println!("Uris {:?}", uris);
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    let filter = EnvFilter::from_default_env().add_directive(Level::INFO.into());
+    let subscriber = FmtSubscriber::builder().with_env_filter(filter).finish();
+    tracing::subscriber::set_global_default(subscriber)?;
+
+    // Keeps old function calls around without unused warnings:
+    if false {
+        run_old().await;
+    }
+
+    let _ = examples::_04_get_block::run_example().await;
     Ok(())
 }
