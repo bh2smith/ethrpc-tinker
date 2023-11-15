@@ -35,6 +35,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let subscriber = FmtSubscriber::builder().with_env_filter(filter).finish();
     tracing::subscriber::set_global_default(subscriber)?;
 
+    // Keeps old function calls around without unused warnings:
     if false {
         run_old().await;
     }
